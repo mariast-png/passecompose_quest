@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Passé-Composé-Quest</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font:16px/1.5 ui-rounded,"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:#1d1b3a;background:radial-gradient(circle at 8% 0,#ffe1d6 0,transparent 34%),radial-gradient(circle at 96% 14%,#d5f5ea 0,transparent 30%),#f4f1ff;background-attachment:fixed}
+main{max-width:860px;margin:auto;padding:20px 14px 100px}
+h1{margin:0;font-size:clamp(26px,5vw,38px)}
+.sub{color:#5d5a85;margin:2px 0 14px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-bottom:14px}
+.pill,.lv{background:#fff;border-radius:16px;padding:6px 14px;font-weight:700;box-shadow:0 4px 14px #5b45e01f}
+.lv{flex:1;min-width:220px}
+.bar{height:10px;border-radius:9px;background:#ece8ff;margin-top:4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#5b45e0,#ff6b6b);transition:width .6s}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:16px}
+.m{border:0;border-radius:18px;padding:12px 8px;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;box-shadow:0 4px 14px #5b45e01f;font:inherit;color:inherit}
+.m span{font-size:28px}.m b{font-size:15px}.m small{color:#6b6894;font-size:12px}
+.m.on{background:#5b45e0;color:#fff}.m.on small{color:#e2dcff}
+.msg{min-height:26px;font-weight:700;margin:0 0 8px;text-align:center}
+.card{background:#fff;border-radius:22px;padding:16px 18px;margin-bottom:14px;box-shadow:0 6px 22px #5b45e01a;position:relative}
+.top{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.ic{font-size:26px}.ttl{font-weight:700;flex:1}
+.chip{border-radius:99px;padding:2px 10px;font-size:12px;font-weight:800}
+.a1{background:#c9f4e4}.a2{background:#ffe9a8}.a3{background:#ffc9c9}
+.q{font-size:19px;margin:8px 0}.hint{color:#6b6894;font-size:14px}
+button{font:inherit;color:inherit}
+.o,.tk,.w{border:0;border-radius:14px;background:#efecff;padding:8px 14px;margin:4px 6px 4px 0;cursor:pointer;font-size:17px}
+.o:hover,.tk:hover,.w:hover{background:#e0dbff}
+.sel,.o.sel,.tk.sel,.w.sel{background:#5b45e0;color:#fff}
+input{border:0;border-radius:12px;background:#efecff;padding:8px 12px;font:inherit;font-size:17px;min-width:150px;max-width:100%;color:inherit}
+input:focus,button:focus-visible{outline:0;box-shadow:0 0 0 3px #5b45e099}
+.out{min-height:48px;background:#f7f5ff;border-radius:14px;padding:6px;margin:6px 0}
+.card.ok{background:#e9fbf4;animation:pop .5s}.card.ko{background:#fff1f1}
+.card.ok .sel{background:#1fb88a}.card.ko .sel{background:#ff6b6b}
+@keyframes pop{40%{transform:scale(1.025)}}
+.fb{font-size:15px;margin-top:6px}
+.fx{position:absolute;pointer-events:none;font-size:22px;z-index:5}
+.dock{position:fixed;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:12px;background:#f4f1ffee;backdrop-filter:blur(6px)}
+.go{border:0;border-radius:16px;padding:12px 20px;font-weight:800;cursor:pointer;background:#5b45e0;color:#fff;box-shadow:0 6px 16px #5b45e055}
+.go.alt{background:#fff;color:#5b45e0;box-shadow:0 4px 12px #5b45e01f}
+.go:disabled{opacity:.4;cursor:default}
+canvas{max-width:100%;height:auto;border-radius:16px;margin-top:12px}
+a.go{display:inline-block;text-decoration:none;margin-top:10px}
+@media(prefers-reduced-motion:reduce){.bar i{transition:none}.card.ok{animation:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>🥐 Passé-Composé-Quest</h1>
+<p class="sub">Französisch · Klasse 9 · Übe das passé composé und sammle XP!</p>
+<div class="stats"><div class="pill" id="xp"></div><div class="pill" id="sk"></div><div class="lv"><span id="lvn"></span><div class="bar"><i id="bf"></i></div></div></div>
+<div class="modes" id="modes"></div>
+<p class="msg" id="msg" role="status"></p>
+<div id="tasks"><div class="card q">👆 Wähle oben ein Thema, dann geht’s los!</div></div>
+<section id="cert" class="card" hidden>
+<div class="q">🏅 Dein Zertifikat</div>
+<input id="nm" placeholder="Dein Name" maxlength="30" aria-label="Dein Name">
+<button class="go" id="mk">Zertifikat erstellen</button>
+<p class="hint" id="cn"></p>
+<canvas id="cv" width="1200" height="850" hidden></canvas><br>
+<a class="go" id="dl" download="zertifikat.png" hidden>⬇️ Als Bild speichern</a>
+</section>
+</main>
+<div class="dock">
+<button class="go" id="chk" disabled>✅ Überprüfen</button>
+<button class="go alt" id="nxt" disabled>🔄 Neue Aufgaben</button>
+<button class="go alt" id="certb">🏅 Zertifikat</button>
+</div>
+<script>
+const $=i=>document.getElementById(i),R=n=>Math.random()*n|0,pick=a=>a[R(a.length)],sh=a=>[...a].sort(()=>Math.random()-.5);
+const nz=s=>(s||'').toLowerCase().replace(/[’`´]/g,"'").replace(/\s+/g,' ').replace(/[.!]$/,'').trim();
+const J=a=>a.join(' ').replace(/' /g,"'");
+const AX=['ai','as','a','avons','avez','ont'],ET=['suis','es','est','sommes','êtes','sont'];
+const AV='parler|parlé|avec ma prof;acheter|acheté|un livre;préférer|préféré|la pizza;répéter|répété|la question;appeler|appelé|mon ami;commencer|commencé|le devoir;corriger|corrigé|les fautes;manger|mangé|une pizza;partager|partagé|le gâteau;ranger|rangé|ma chambre;inviter|invité|mes amis;apporter|apporté|des gâteaux;trouver|trouvé|mon portable;rigoler|rigolé|en classe;porter|porté|un pull;terminer|terminé|le projet;expliquer|expliqué|la règle;donner|donné|un cadeau;penser|pensé|à toi;retrouver|retrouvé|mes copains;surfer|surfé|sur Internet;écouter|écouté|de la musique;regarder|regardé|un film;bricoler|bricolé|dans le garage;jouer|joué|au foot;présenter|présenté|mon exposé;utiliser|utilisé|mon portable;préparer|préparé|le repas;goûter|goûté|la tarte;marcher|marché|dans le parc;visiter|visité|le musée;chatter|chatté|avec Max;organiser|organisé|la fête;faire|fait|mes devoirs;avoir|eu|un problème;être|été|en retard;prendre|pris|le bus;mettre|mis|mon pull;pouvoir|pu|venir;vouloir|voulu|un chocolat chaud'.split(';').map(x=>x.split('|'));
+AV.push(['coûter','coûté','dix euros',[['Le livre',2],['Ce pull',2],['Les baskets',5]]]);
+const EV=[['aller','allé',["au cinéma","à Paris","à l'école","au parc","chez Mamie"]],['rentrer','rentré',["à la maison","tôt","à six heures","en bus"]]];
+const AS=[['Je',0],['Tu',1],['Il',2],['Elle',2],['Nous',3],['Vous',4],['Ils',5],['Elles',5],['Léa',2],['Max',2],['Mes amis',5],['Mon frère',2]];
+const ES=[['Léo',2,''],['Léa',2,'e'],['Il',2,''],['Elle',2,'e'],['Paul et Tom',5,'s'],['Inès et Jade',5,'es'],['Paul et Léa',5,'s'],['Ils',5,'s'],['Elles',5,'es'],['Mon frère',2,''],['Ma sœur',2,'e'],['Mes parents',5,'s'],['Mes copines',5,'es']];
+const RIEN='manger,acheter,trouver,apporter,donner,prendre,mettre,faire,préparer,écouter,regarder,porter'.split(',');
+const NG=['pas'],T=['hier','samedi','hier soir','ce matin','la semaine dernière'];
+
+function mkS(c){const et=c=='et'||(c=='ng'&&R(2));let v,sb,comp,e='',neg=null;
+ if(et){v=pick(EV);sb=pick(c=='et'&&R(10)<8?ES.filter(x=>x[2]):ES);comp=pick(v[2]);e=sb[2]}
+ else{v=pick(AV);sb=v[3]?pick(v[3]):pick(AS);comp=v[2]}
+ if(c=='ng'){neg=pick(NG);if(neg=='rien'&&(et||!RIEN.includes(v[0])))neg='pas'}
+ return{et,v,sb,comp,e,neg,t:!neg&&R(2)?pick(T):'',aux:(et?ET:AX)[sb[1]]}}
+function parts(s){const sj=s.sb[0].split(' '),x=s.aux,g=s.neg;let P=sj,N=[x],G=[];
+ if(g){N=/^[aeéêoh]/.test(x)?["n'"+x]:['ne',x];G=g.split(' ')}else if(sj[0]=='Je'&&/^[aeéh]/.test(x))P=["J'"];
+ return{P,N,G,R:[s.v[1]+s.e,...(s.comp&&g!='rien'?s.comp.split(' '):[]),...(s.t?[s.t]:[])]}}
+function tk(s){const p=parts(s);return{a:[...p.P,...p.N,...p.G,...p.R],ai:p.P.length+p.N.length-1,pi:p.P.length+p.N.length+p.G.length,p}}
+const sent=s=>J(tk(s).a)+'.';
+
+const G={};
+G.mcPart=(c,f)=>{const s=mkS(c),k=tk(s),p=s.v[1],cor=p+s.e,a=[...k.a];a[k.pi]='____';
+ const d=[...new Set(sh([p,p+'e',p+'s',p+'es']).filter(x=>x!=cor&&x!=s.v[0]))].slice(0,2);
+ return{k:'mc',f,ic:'🎯',h:`Welches Partizip passt? (${s.v[0]})`,q:J(a)+'.',o:sh([cor,s.v[0],...d]),a:cor,sol:sent(s)}};
+G.mcAgr=(c,f)=>{const s=mkS('et'),k=tk(s),p=s.v[1],a=[...k.a];a[k.pi]='____';
+ return{k:'mc',f,ic:'🎯',h:`Welche Form passt zum Subjekt? (${s.v[0]})`,q:J(a)+'.',o:['','e','s','es'].map(x=>p+x),a:p+s.e,sol:sent(s)}};
+G.mcAux=(c,f)=>{let s;do s=mkS(c);while(s.sb[1]==0);const k=tk(s),p=s.sb[1],a=[...k.a];a[k.ai]='____';
+ const o=[AX[p],ET[p],(s.et?ET:AX)[(p+2)%6],(s.et?AX:ET)[(p+3)%6]];
+ return{k:'mc',f,ic:'🎯',h:'Welches Hilfsverb passt?',q:J(a)+` (${s.v[0]})`,o:sh(o),a:s.aux,sol:sent(s)}};
+G.mcHelper=(c,f)=>{const et=c=='et',v=et?pick(EV):pick(AV),a=et?'être':'avoir';
+ return{k:'mc',f,ic:'🧰',h:'Welches Hilfsverb?',q:`Mit welchem Hilfsverb bildet man das passé composé von « ${v[0]} » ?`,o:['avoir','être'],a,sol:'Mit '+a+'.'}};
+G.bu=(c,f)=>{const s=mkS(c);s.t='';const k=tk(s);
+ return{k:'bu',f,ic:'🧩',h:'Tippe die Wörter in die richtige Reihenfolge.',pool:sh(k.a.map((w,i)=>({w,i}))),out:[],a:J(k.a)+'.',sol:J(k.a)+'.'}};
+G.gap=(c,f)=>{const s=mkS(c),p=parts(s);
+ return{k:'ty',f,ic:'✍️',h:'Setze das passé composé ein.',hint:`(${s.v[0]}${s.neg?' – verneint mit ne … '+s.neg:''})`,pre:J(p.P)+(p.P[0]=="J'"?'':' '),suf:J(p.R.slice(1))+'.',a:J([...p.N,...p.G,p.R[0]]),sol:sent(s)}};
+G.tr=(c,f)=>{const s=mkS('ng');s.t='';const g=f<3?'pas':'pas';
+ return{k:'ty',f,ic:'🔄',h:`Verneine den Satz mit ne … ${g}.`,q:sent({...s,neg:null}),a:sent({...s,neg:g}),sol:sent({...s,neg:g})}};
+G.de=(c,f)=>{const s=mkS(c),k=tk(s),a=[...k.a],cor=s.v[1]+s.e;let w=k.pi,fx=cor,ex,L;
+ if(s.neg)L=['inf','ne']; else if(s.et)L=s.e?['agr','agr','aux','inf']:['aux','inf','agr'];
+ else{L=['avagr','avagr','inf'];if(s.sb[1]!=0)L.push('aux')}
+ const t=pick(L);
+ if(t=='inf'){a[w]=s.v[0];ex='Nach dem Hilfsverb steht das Partizip, nicht der Infinitiv.'}
+ else if(t=='agr'){a[w]=s.v[1]+pick(['','e','s','es'].filter(x=>x!=s.e));ex='Mit être gleicht sich das Partizip an das Subjekt an.'}
+ else if(t=='avagr'){a[w]=s.v[1]+pick(['e','s','es']);ex='Mit avoir bleibt das Partizip unverändert.'}
+ else if(t=='aux'){w=k.ai;a[w]=(s.et?AX:ET)[s.sb[1]];fx=s.aux;ex=`« ${s.v[0]} » braucht ${s.et?'être':'avoir'}.`}
+ else{w=k.ai;ex="Die Verneinung braucht ne bzw. n' vor dem Hilfsverb.";if(a[w].startsWith("n'")){fx=a[w];a[w]=a[w].slice(2)}else{fx='ne '+a[w];a.splice(w-1,1);w--}}
+ return{k:'de',f,ic:'🔍',h:'Fehlerdetektiv: Ein Wort ist falsch. Klicke darauf'+(f>2?' und schreibe es richtig.':'.'),tk:a,w,fx,ex,sol:`Fehler: « ${a[w]} » → « ${fx} ». `}};
+const RS={'':'Subjekt männlich, Singular → keine Endung','e':'Subjekt weiblich, Singular → -e','s':'Subjekt männlich, Plural (oder gemischte Gruppe) → -s','es':'Subjekt weiblich, Plural → -es'};
+G.ra=(c,f)=>{let s;do s=mkS('et');while(!s.e&&R(3));
+ return{k:'mc',f,ic:'🧠',h:'Warum sieht das Partizip so aus?',q:sent(s)+` (Partizip: ${s.v[1]+s.e})`,o:sh(Object.values(RS)),a:RS[s.e],sol:RS[s.e]}};
+G.rv=(c,f)=>{let s;do s=mkS('av');while(s.sb[1]<5&&R(2));const a='Mit avoir wird das Partizip nicht angeglichen.';
+ return{k:'mc',f,ic:'🧠',h:'Warum bleibt das Partizip unverändert?',q:sent(s),o:sh([a,'Weil das Subjekt Plural ist, steht kein -s.',`Weil « ${s.v[0]} » eine Ausnahme ist.`,'Weil das Objekt feminin ist.']),a,sol:a}};
+G.mn=(c,f)=>{const s=mkS('ng');s.t='';const p=parts(s),x=s.aux,A=(...z)=>J(z.flat())+'.';
+ const o=[A(p.P,p.N,p.G,p.R),A(p.P,p.N,p.R[0],p.G,p.R.slice(1)),A(p.P,x,p.G,p.R),A(p.P,'ne',p.G,x,p.R)];
+ return{k:'mc',f,ic:'🎯',h:'Welcher Satz ist richtig verneint?',o:sh([...new Set(o)]),a:o[0],sol:o[0]}};
+const REG={av:{1:['mcPart','mcAux','mcHelper','bu'],2:['gap','de'],3:['de','rv']},
+et:{1:['mcPart','mcAgr','mcAux','mcHelper','bu'],2:['gap','de'],3:['de','ra']},
+ng:{1:['mn','bu'],2:['gap','de','tr'],3:['tr','de']}};
+
+let mode='',tasks=[],cards=[],done=0;
+const S={xp:0,ok:0,tot:0,st:0,best:0};
+const LV=[[0,'🌱','Débutant·e'],[100,'🎒','Apprenti·e'],[250,'🧭','Explorateur·trice'],[450,'🚀','Pro du passé'],[700,'👑','Maître du passé composé']];
+const lvl=()=>{let i=0;LV.forEach((l,j)=>{if(S.xp>=l[0])i=j});return i};
+function stats(){const i=lvl(),a=LV[i][0],b=LV[i+1]?LV[i+1][0]:a+1;
+ $('xp').textContent=`⭐ ${S.xp} XP`;$('sk').textContent=`🔥 Serie: ${S.st}`;
+ $('lvn').textContent=`${LV[i][1]} ${LV[i][2]}`+(LV[i+1]?` · noch ${b-S.xp} XP bis ${LV[i+1][1]}`:' · Höchstes Level!');
+ $('bf').style.width=(LV[i+1]?(S.xp-a)/(b-a)*100:100)+'%'}
+
+function rb(t,bd){bd.innerHTML='';const mk=(txt,cls,fn)=>{const b=document.createElement('button');b.className=cls;b.textContent=txt;b.onclick=fn;return b};
+ if(t.k=='mc'){bd.innerHTML=`<div class="q">${t.q||''}</div>`;t.o.forEach(o=>bd.append(mk(o,'o'+(t.v==o?' sel':''),()=>{t.v=o;rb(t,bd)})))}
+ else if(t.k=='ty'){bd.innerHTML=(t.q?`<div class="q">${t.q}</div>`:'')+(t.hint?`<div class="hint">${t.hint}</div>`:'')+`<div class="q">${t.pre||''}<input autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Antwort"> ${t.suf||''}</div>`;
+  const i=bd.querySelector('input');i.value=t.v||'';i.oninput=()=>t.v=i.value;if(!t.pre)i.style.width='min(100%,480px)'}
+ else if(t.k=='bu'){const o=document.createElement('div'),p=document.createElement('div');o.className='out';
+  t.out.forEach(x=>o.append(mk(x.w,'w sel',()=>{t.out=t.out.filter(y=>y!==x);t.pool.push(x);rb(t,bd)})));
+  t.pool.forEach(x=>p.append(mk(x.w,'w',()=>{t.pool=t.pool.filter(y=>y!==x);t.out.push(x);rb(t,bd)})));bd.append(o,p)}
+ else{const p=document.createElement('div');p.className='q';t.tk.forEach((w,i)=>p.append(mk(w,'tk'+(t.v===i?' sel':''),()=>{t.v=i;rb(t,bd)})));p.append('.');bd.append(p);
+  if(t.f>2){const l=document.createElement('div');l.innerHTML='Richtig: <input autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Verbesserung">';const i=l.querySelector('input');i.value=t.fv||'';i.oninput=()=>t.fv=i.value;bd.append(l)}}}
+
+function newRound(){done=0;tasks=[];
+ [1,1,1,1,1,2,2,3].forEach((f,i)=>{let t,n=0;do{const c=mode=='mix'?pick(['av','et','ng']):mode;t=G[i==5?'de':pick(REG[c][f])](c,f)}while(tasks.some(x=>x.sol==t.sol)&&++n<9);tasks.push(t)});
+ const box=$('tasks');box.innerHTML='';cards=tasks.map(t=>{const d=document.createElement('div');d.className='card';
+  d.innerHTML=`<div class="top"><span class="ic">${t.ic}</span><span class="ttl">${t.h}</span><span class="chip a${t.f}">AFB ${'I'.repeat(t.f)}</span></div><div class="bd"></div><div class="fb"></div>`;
+  rb(t,d.querySelector('.bd'));box.append(d);return d});
+ $('chk').disabled=false;$('nxt').disabled=true;$('msg').textContent='';scrollTo({top:0,behavior:'smooth'})}
+
+const SW=[['paul et tom','tom et paul'],['inès et jade','jade et inès'],['paul et léa','léa et paul']];
+const eqs=(u,a)=>{u=nz(u);a=nz(a);return u==a||SW.some(([x,y])=>(a.startsWith(x+' ')&&u==y+a.slice(x.length))||(a.startsWith(y+' ')&&u==x+a.slice(y.length)))};
+const good=t=>t.k=='mc'?t.v===t.a:t.k=='ty'?eqs(t.v,t.a):t.k=='bu'?eqs(J(t.out.map(x=>x.w)),t.a):t.v===t.w&&(t.f<3||nz(t.fv)==nz(t.fx));
+function burst(d){if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+ for(let i=0;i<12;i++){const s=document.createElement('span');s.className='fx';s.textContent=pick(['⭐','✨','🎉','💫','🔥','🥐']);s.style.cssText=`left:${20+R(60)}%;top:40%`;d.append(s);
+  const a=Math.random()*6.28,r=60+R(90);s.animate([{transform:'scale(.3)',opacity:1},{transform:`translate(${Math.cos(a)*r}px,${Math.sin(a)*r-30}px) scale(1.4) rotate(${R(360)}deg)`,opacity:0}],{duration:900+R(500),easing:'ease-out'}).onfinish=()=>s.remove()}}
+
+$('chk').onclick=()=>{if(done||!tasks.length)return;done=1;let n=0,gain=0;
+ tasks.forEach((t,i)=>{const d=cards[i],g=good(t);d.classList.add(g?'ok':'ko');d.querySelectorAll('button,input').forEach(x=>x.disabled=true);S.tot++;
+  if(g){n++;S.ok++;S.st++;S.best=Math.max(S.best,S.st);const x=10*t.f+(S.st>=3?5:0);gain+=x;S.xp+=x;d.querySelector('.fb').textContent=`✅ Richtig! +${x} XP`;setTimeout(()=>burst(d),i*150)}
+  else{S.st=0;d.querySelector('.fb').innerHTML=`❌ Lösung: <b>${t.sol}</b>${t.ex?'<br>💡 '+t.ex:''}`}});
+ if(n==tasks.length){S.xp+=25;gain+=25;$('msg').textContent='🏆 Perfekte Runde! +25 Bonus-XP'}else $('msg').textContent=`${n} von ${tasks.length} richtig · +${gain} XP`;
+ stats();$('nxt').disabled=false;$('chk').disabled=true};
+$('nxt').onclick=newRound;
+
+[['av','🎒','Mit avoir','j’ai mangé'],['et','🏃','Mit être','elle est allée(s)'],['ng','🚫','Verneinung','n’a pas mangé'],['mix','🎲','Mix','alles gemischt']].forEach(m=>{
+ const b=document.createElement('button');b.className='m';b.innerHTML=`<span>${m[1]}</span><b>${m[2]}</b><small>${m[3]}</small>`;
+ b.onclick=()=>{mode=m[0];document.querySelectorAll('.m').forEach(x=>x.classList.remove('on'));b.classList.add('on');newRound()};$('modes').append(b)});
+
+$('certb').onclick=()=>{$('cert').hidden=false;$('cn').textContent=S.tot?'':'Löse zuerst eine Runde, dann hast du Punkte für dein Zertifikat.';$('cert').scrollIntoView({behavior:'smooth'})};
+$('mk').onclick=()=>{const c=$('cv'),x=c.getContext('2d'),W=1200,H=850,nm=$('nm').value.trim()||'Dein Name',i=lvl(),pc=S.tot?Math.round(S.ok/S.tot*100):0;
+ const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,'#5b45e0');g.addColorStop(1,'#ff6b6b');x.fillStyle=g;x.fillRect(0,0,W,H);
+ x.fillStyle='#fff';x.beginPath();(x.roundRect||x.rect).call(x,50,50,W-100,H-100,40);x.fill();
+ x.textAlign='center';const F='"Trebuchet MS",system-ui,sans-serif',T=(t,y,sz,col,b)=>{x.fillStyle=col;x.font=`${b?'bold ':''}${sz}px ${F}`;x.fillText(t,W/2,y)};
+ T('🏅 Zertifikat 🏅',190,70,'#1d1b3a',1);T('Passé-Composé-Quest · Französisch Klasse 9',250,30,'#6b6894');
+ T('Dieses Zertifikat erhält',340,34,'#1d1b3a');
+ let fs=88;x.font=`bold ${fs}px ${F}`;while(x.measureText(nm).width>W-240){fs-=4;x.font=`bold ${fs}px ${F}`}T(nm,450,fs,'#5b45e0',1);
+ T(`für ${S.xp} XP beim Üben des passé composé`,540,36,'#1d1b3a');
+ T(`${S.ok} von ${S.tot} Aufgaben richtig (${pc} %) · 🔥 längste Serie: ${S.best}`,600,30,'#1d1b3a');
+ T(`${LV[i][1]} Level: ${LV[i][2]}`,690,48,'#ff6b6b',1);
+ T(new Date().toLocaleDateString('de-DE')+' · Félicitations ! 🥐',770,28,'#6b6894');
+ c.hidden=false;$('dl').href=c.toDataURL('image/png');$('dl').hidden=false};
+stats();
+</script>
+</body>
+</html>
